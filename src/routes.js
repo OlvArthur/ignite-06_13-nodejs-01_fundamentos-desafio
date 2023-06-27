@@ -25,6 +25,8 @@ export const routes = [
     handler: (req, res)  => {
       const { title, description } = req.body
 
+      if(!title || !description) return res.writeHead(400).end(JSON.stringify({ error: 'Missing Title Or Description'}))
+
       const task = {
         id: randomUUID(),
         title,
@@ -45,6 +47,12 @@ export const routes = [
     handler: (req, res) => {
       const { id } = req.params
 
+      const [existentTask] = database.select('tasks', {
+        id
+      })
+
+      if(!existentTask) return res.writeHead(404).end(JSON.stringify({error: 'Task not found'}))
+
       database.delete('tasks',id)
 
       return res.writeHead(204).end()
@@ -57,11 +65,13 @@ export const routes = [
       const { id } = req.params
       const { title, description } = req.body
 
+      if(!title && !description) return res.writeHead(400).end(JSON.stringify({ error: 'Missing Title And Description'}))
+
       const [existentTask] = database.select('tasks', {
         id
       })
 
-      if(!existentTask) return res.writeHead(404).end('Task not found')
+      if(!existentTask) return res.writeHead(404).end(JSON.stringify({error: 'Task not found'}))
 
       database.update('tasks', id, {
         title: title ?? existentTask.title,
